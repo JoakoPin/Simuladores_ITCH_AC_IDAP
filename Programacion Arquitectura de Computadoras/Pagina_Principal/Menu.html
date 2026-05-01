@@ -3,22 +3,25 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Menu con Popups</title>
+    <title>Menu Animado</title>
     <style>
-        /* Estilos originales */
-        body, html {
+        /* --- ESTILOS ORIGINALES (con ligeros retoques) --- */
+        body,
+        html {
             margin: 0;
             padding: 0;
             width: 100%;
             height: 100%;
             overflow: hidden;
-            font-family: sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            /* Fuente más moderna */
         }
 
         .fondo {
             width: 100vw;
             height: 100vh;
             background-image: url('Mapaches.jpg');
+            /* Asegúrate de tener esta imagen */
             background-size: cover;
             background-position: center;
             display: flex;
@@ -26,7 +29,7 @@
             align-items: center;
         }
 
-        .ventana {
+        .ventana-menu {
             background-color: rgba(255, 255, 255, 0.4);
             padding: 50px;
             border-radius: 20px;
@@ -34,7 +37,6 @@
             flex-direction: column;
             gap: 20px;
             width: 300px;
-            backdrop-filter: blur(5px); /* Un toque extra de elegancia */
         }
 
         .boton {
@@ -47,14 +49,23 @@
             font-weight: bold;
             cursor: pointer;
             text-align: center;
-            transition: 0.3s;
+            transition: background-color 0.3s, transform 0.1s;
+            /* Animación en hover también */
+            outline: none;
         }
 
         .boton:hover {
             background-color: #007bff;
         }
 
-        /* --- Estilos para el Popup (Modal) --- */
+        .boton:active {
+            transform: scale(0.98);
+            /* Efecto de pulsación */
+        }
+
+        /* --- NUEVOS ESTILOS PARA EL POPUP ANIMADO --- */
+
+        /* El Overlay (fondo oscuro) */
         .overlay {
             position: fixed;
             top: 0;
@@ -62,41 +73,91 @@
             width: 100%;
             height: 100%;
             background: rgba(0, 0, 0, 0.7);
-            display: none; /* Oculto por defecto */
+            display: flex;
+            /* Usamos flex para centrar, pero lo controlamos con opacity */
             justify-content: center;
             align-items: center;
             z-index: 1000;
+
+            /* ESTADO INICIAL (OCULTO) */
+            opacity: 0;
+            visibility: hidden;
+
+            /* TRANSICIÓN */
+            transition: opacity 0.4s ease, visibility 0.4s ease;
         }
 
+        /* Estado cuando el popup está ACTIVO */
+        .overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* La Ventana Popup */
         .popup {
             background: white;
-            padding: 30px;
-            border-radius: 15px;
+            padding: 35px;
+            border-radius: 20px;
             text-align: center;
-            min-width: 250px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            min-width: 280px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+
+            /* ESTADO INICIAL (Más pequeño y transparente) */
+            opacity: 0;
+            transform: scale(0.7);
+            /* Empieza un 30% más pequeña */
+
+            /* TRANSICIÓN (con un ligero rebote "cubic-bezier") */
+            transition: opacity 0.4s ease, transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* Estado de la ventana cuando está ACTIVA */
+        .overlay.active .popup {
+            opacity: 1;
+            transform: scale(1);
+            /* Vuelve a su tamaño original */
         }
 
         .popup h2 {
             margin-top: 0;
-            color: #333;
+            color: #004a99;
+            margin-bottom: 25px;
         }
 
         .contenedor-botones-popup {
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            margin-top: 20px;
+            gap: 12px;
+        }
+
+        /* Estilo específico para los botones dentro del popup */
+        .contenedor-botones-popup .boton {
+            font-size: 16px;
+            padding: 12px;
+        }
+
+        .proximamente-txt {
+            font-size: 22px;
+            font-weight: bold;
+            color: #666;
+            margin: 20px 0;
+            font-style: italic;
         }
 
         .btn-cerrar {
-            margin-top: 15px;
-            background: #cc0000;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 5px;
+            margin-top: 25px;
+            background: #f4f4f4;
+            color: #333;
+            border: 1px solid #ddd;
+            padding: 8px 18px;
+            border-radius: 8px;
             cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+
+        .btn-cerrar:hover {
+            background: #e0e0e0;
         }
     </style>
 </head>
@@ -104,20 +165,20 @@
 <body>
 
     <div class="fondo">
-        <div class="ventana">
-            <!-- Agregamos onclick para identificar cada unidad -->
+        <div class="ventana-menu">
+            <!-- Llamamos a abrirModal -->
             <button class="boton" onclick="abrirModal('unidad4')">Prácticas de la unidad 4</button>
             <button class="boton" onclick="abrirModal('unidad3')">Prácticas de la unidad 3</button>
             <button class="boton" onclick="abrirModal('unidad2')">Prácticas de la unidad 2</button>
         </div>
     </div>
 
-    <!-- Estructura del Popup -->
+    <!-- Estructura del Popup (fuera del flujo principal) -->
     <div id="miOverlay" class="overlay">
         <div class="popup">
             <h2 id="tituloPopup">Título</h2>
             <div id="contenidoPopup" class="contenedor-botones-popup">
-                <!-- Aquí se inyectará el contenido dinámicamente -->
+                <!-- Contenido dinámico aquí -->
             </div>
             <button class="btn-cerrar" onclick="cerrarModal()">Cerrar</button>
         </div>
@@ -129,51 +190,55 @@
         const contenido = document.getElementById('contenidoPopup');
 
         function abrirModal(unidad) {
-            // Limpiamos el contenido previo
+            // 1. Limpiar contenido anterior
             contenido.innerHTML = "";
-            
+
+            // 2. Preparar el contenido según la unidad
             if (unidad === 'unidad2') {
-                titulo.innerText = "Unidad 2";
-                
-                // Crear botón Práctica 1
+                titulo.innerText = "Unidad 2: Prácticas Disponibles";
+
+                // Botón Práctica 1
                 const btn1 = document.createElement('button');
                 btn1.className = 'boton';
                 btn1.innerText = "Práctica 1: Buses";
-                btn1.onclick = () => alert("Abriendo Práctica 1..."); // Aquí pones tu link
-                
-                // Crear botón Práctica 2
+                btn1.onclick = () => window.location.href = '#'; // Reemplazar con enlace real
+
+                // Botón Práctica 2
                 const btn2 = document.createElement('button');
                 btn2.className = 'boton';
                 btn2.innerText = "Práctica 2: Entradas/Salidas";
-                btn2.onclick = () => alert("Abriendo Práctica 2..."); // Aquí pones tu link
-                
+                btn2.onclick = () => window.location.href = '#'; // Reemplazar con enlace real
+
                 contenido.appendChild(btn1);
                 contenido.appendChild(btn2);
-            } 
+            }
             else {
-                // Para unidad 3 y 4
+                // Unidad 3 o 4
                 titulo.innerText = (unidad === 'unidad3') ? "Unidad 3" : "Unidad 4";
                 const msg = document.createElement('p');
-                msg.innerText = "Próximamente...";
-                msg.style.fontSize = "20px";
+                msg.className = 'proximamente-txt';
+                msg.innerText = "¡Próximamente!";
                 contenido.appendChild(msg);
             }
 
-            // Mostrar el modal
-            overlay.style.display = 'flex';
+            // 3. ACTIVAR LA ANIMACIÓN añadiendo la clase 'active'
+            overlay.classList.add('active');
         }
 
         function cerrarModal() {
-            overlay.style.display = 'none';
+            // Quitar la clase 'active' para iniciar la animación de cierre
+            overlay.classList.remove('active');
         }
 
-        // Cerrar si se hace clic fuera del recuadro blanco
-        window.onclick = function(event) {
-            if (event.target == overlay) {
+        // Cerrar si se hace clic en el fondo oscuro
+        overlay.addEventListener('click', function (event) {
+            // Si el clic fue directamente en el overlay (y no dentro del popup)
+            if (event.target === overlay) {
                 cerrarModal();
             }
-        }
+        });
     </script>
 
 </body>
+
 </html>
