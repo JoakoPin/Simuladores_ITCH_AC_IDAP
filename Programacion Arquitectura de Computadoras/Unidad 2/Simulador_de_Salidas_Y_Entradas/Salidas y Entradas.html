@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Juego Mapache E/S - Final</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background: #000;
+            overflow: hidden;
+        }
+
+        #escena {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+        }
+
+        #fondo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            transition: opacity 0.2s ease;
+        }
+
+        /* Contenedor Personaje */
+        #contenedor-personaje {
+            position: absolute;
+            bottom: 20px;
+            display: flex;
+            flex-direction: column-reverse;
+            align-items: center;
+            z-index: 1;
+            transition: all 0.5s ease-in-out;
+        }
+
+        #personaje {
+            height: 700px;
+            /* Tamaño base unificado */
+            background-color: transparent !important;
+            margin-bottom: 15px;
+            object-position: bottom center;
+        }
+
+        #mensaje {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px 30px;
+            border-radius: 15px;
+            font-size: 20px;
+            font-weight: bold;
+            color: #000;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+            max-width: 500px;
+            text-align: center;
+            position: relative;
+        }
+
+        #mensaje h1 {
+            font-size: 22px;
+            margin: 0 0 5px 0;
+            color: #007BFF;
+        }
+
+        #mensaje h2 {
+            font-size: 16px;
+            margin: 0 0 5px 0;
+            color: #333;
+        }
+
+        #mensaje::after {
+            content: '';
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 0 15px 15px;
+            border-style: solid;
+            border-color: transparent transparent rgba(255, 255, 255, 0.95);
+        }
+
+        /* Contenedor Simulador (660px x 462px) */
+        #contenedor-simulador {
+            position: absolute;
+            top: 40px;
+            right: 40px;
+            width: 660px;
+            height: 462px;
+            background: rgba(15, 23, 42, 0.9);
+            border: 3px solid #38bdf8;
+            border-radius: 20px;
+            display: none;
+            flex-direction: column;
+            z-index: 5;
+            padding: 20px;
+            color: white;
+            font-family: 'Courier New', monospace;
+            box-sizing: border-box;
+        }
+
+        #pnl-tecnico {
+            font-size: 16px;
+            color: #38bdf8;
+            margin-bottom: 15px;
+            text-align: center;
+            font-weight: bold;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 10px;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #escenario-maestro {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        .bloque {
+            width: 170px;
+            height: 75px;
+            background: #334155;
+            border: 2px solid #64748b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            border-radius: 8px;
+            z-index: 5;
+            transition: all 0.4s;
+            font-size: 13px;
+            text-align: center;
+            position: absolute;
+        }
+
+        .iluminar-hw {
+            background: #92400e !important;
+            box-shadow: 0 0 20px #fbbf24 !important;
+            border-color: #fbbf24 !important;
+        }
+
+        .iluminar-ctrl {
+            background: #5b21b6 !important;
+            box-shadow: 0 0 20px #a78bfa !important;
+            border-color: #a78bfa !important;
+        }
+
+        .iluminar-cpu {
+            background: #075985 !important;
+            box-shadow: 0 0 20px #38bdf8 !important;
+            border-color: #38bdf8 !important;
+        }
+
+        .iluminar-ram {
+            background: #7e22ce !important;
+            box-shadow: 0 0 20px #d946ef !important;
+            border-color: #d946ef !important;
+        }
+
+        .iluminar-disco {
+            background: #4d7c0f !important;
+            box-shadow: 0 0 20px #84cc16 !important;
+            border-color: #84cc16 !important;
+        }
+
+        .iluminar-mon {
+            background: #064e3b !important;
+            box-shadow: 0 0 20px #22c55e !important;
+            border-color: #22c55e !important;
+        }
+
+        .iluminar-gpu {
+            background: #9f1239 !important;
+            box-shadow: 0 0 20px #fb7185 !important;
+            border-color: #fb7185 !important;
+        }
+
+        .linea {
+            position: absolute;
+            background: #1e293b;
+            border: 1px solid #334155;
+            z-index: 1;
+            transition: all 0.4s ease;
+        }
+
+        .activa {
+            background: #fbbf24 !important;
+            box-shadow: 0 0 15px #fbbf24 !important;
+            border-color: #fbbf24 !important;
+        }
+
+        #dato {
+            width: 20px;
+            height: 20px;
+            background: #fbbf24;
+            position: absolute;
+            z-index: 10;
+            border-radius: 4px;
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            display: none;
+            box-shadow: 0 0 15px #fbbf24;
+        }
+
+        .btn-nav {
+            position: absolute;
+            left: 20px;
+            padding: 15px 30px;
+            font-size: 18px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            color: white;
+            z-index: 10;
+            transition: all 0.3s ease;
+        }
+
+        #btn-siguiente {
+            bottom: 20px;
+            background: #007BFF;
+        }
+
+        #btn-anterior {
+            bottom: 90px;
+            background: #6c757d;
+        }
+
+        .oculto {
+            display: none;
+        }
+    </style>
+</head>
+
+<body onload="inicializarEscena()">
+
+    <div id="escena">
+        <img id="fondo" src="imagenes/Laboratorio_Entrada.jpg">
+
+        <div id="contenedor-simulador">
+            <div id="pnl-tecnico">Iniciando sistema...</div>
+            <div id="escenario-maestro">
+                <div class="bloque" id="b1"></div>
+                <div class="bloque" id="b2"></div>
+                <div class="bloque" id="b3"></div>
+                <div class="bloque" id="b4"></div>
+                <div class="bloque" id="b5"></div>
+                <div class="bloque" id="b6"></div>
+
+                <div class="linea" id="l1"></div>
+                <div class="linea" id="l2"></div>
+                <div class="linea" id="l3"></div>
+                <div class="linea" id="l4"></div>
+                <div class="linea" id="l5"></div>
+
+                <div id="dato"></div>
+            </div>
+        </div>
+
+        <div id="contenedor-personaje">
+            <div id="mensaje"></div>
+            <img id="personaje" src="">
+        </div>
+    </div>
+
+    <button id="btn-siguiente" class="btn-nav">Siguiente Escena</button>
+    <button id="btn-anterior" class="btn-nav oculto">Anterior</button>
+
+    <script>
+        const escenas = [
+            { fondo: "imagenes/Laboratorio_Entrada.jpg", pers: "imagenes/Mapache_Saluda.png", msg: "¡Hola, mapaches! El día de hoy veremos un gran tema: Entrada y Salida (E/S).", titulo: "" },
+            { fondo: "imagenes/Laboratorio_Puerta.jpg", pers: "imagenes/Mapache_Izquierda.png", msg: "Para explicarlo mejor, vamos a entrar a la sala de cómputo.", titulo: "" },
+            { fondo: "imagenes/Laboratorio.jpg", pers: "imagenes/Mapache_ManosAbiertas.png", msg: "Pero antes vamos a hacer esto más animado.", titulo: "" },
+            { fondo: "imagenes/Laboratorio_Animado.jpg", pers: "imagenes/Mapache_Explica_ConDedo.png", msg: "!Ahora si¡ Este tema se divide en dos partes: las entradas y las salidas.", titulo: "" },
+            { fondo: "imagenes/Laboratorio_Animado.jpg", pers: "imagenes/Mapache_Explica_ConDedo.png", msg: "!Las entradas¡ son los dispositivos que envían información al sistema, como el teclado y el mouse.", titulo: "" },
+            { fondo: "imagenes/Laboratorio_Animado.jpg", pers: "imagenes/Mapache_ManosAbiertas.png", msg: "!Las salidas¡ son los dispositivos que muestran los resultados del procesamiento, como el monitor y la impresora.", titulo: "" },
+            { fondo: "imagenes/Laboratorio_Computadora.jpg", pers: "imagenes/Mapache_ManosAbiertas.png", msg: "Para entenderlo mejor, vamos a usar uno de los equipos del ITCH.", titulo: "" },
+            { fondo: "imagenes/Laboratorio_Computadora.jpg", pers: "imagenes/Mapache_ManosAbiertas.png", msg: "Pero antes, ¡hagámoslo más divertido! Conectaremos el monitor, el teclado y el mouse, y veremos cómo funciona con un simulador.", titulo: "" },
+            { fondo: "imagenes/Laboratorio_Computadora.jpg", pers: "imagenes/Mapache_ManosAbiertas.png", msg: "Primero conectemos el monitor.", titulo: "" },
+            { fondo: "imagenes/Laboratorio_MonitorApagado.jpg", pers: "imagenes/Mapache_Explica_ConDedo.png", msg: "El monitor es un dispositivo de salida porque muestra los datos procesados por la computadora.", titulo: "" },
+            { fondo: "imagenes/Laboratorio_MonitorApagado.jpg", pers: "imagenes/Mapache_ManosAbiertas.png", msg: "Cuando presionas el botón de encendido, se envía una señal que activa el flujo de datos hacia la pantalla.", titulo: "" },
+            { fondo: "imagenes/Laboratorio_MonitorApagado.jpg", pers: "imagenes/Mapache_ManosAbiertas.png", msg: "Para entenderlo mejor, ¡presiona el monitor y observa el simulador!", titulo: "" },
+            /* MONITOR 12-17 */
+            { fondo: "imagenes/Laboratorio_MonitorApagado.jpg", pers: "imagenes/Mapache_Explica_ConDedo.png", msg: "!Ahora si¡ Trabajaremos con este simulador para entenderlo mejor", titulo: "" },
+            { fondo: "imagenes/Laboratorio_MonitorApagado.jpg", pers: "imagenes/Mapache_ManosAbiertas.png", msg: "¡Mira! Aquí en la Memoria RAM ya están guardados los colores y la forma de lo que queremos ver.", titulo: "<h1>🖥️ Simulador Monitor</h1><h2>Paso 1: La Memoria</h2>" },
+            { fondo: "imagenes/Laboratorio_MonitorApagado.jpg", pers: "imagenes/Mapache_Explica_ConDedo.png", msg: "¡Atención! La Unidad de Control da la orden: '¡Ey, Memoria! Manda esos datos al monitor ahora mismo'.", titulo: "<h2>Paso 2: CPU</h2>" },
+            { fondo: "imagenes/Laboratorio_MonitorApagado.jpg", pers: "imagenes/Mapache_ManosAbiertas.png", msg: "¡Acelera! El dato viaja por el Bus de Datos. Es la carretera interna que conecta todo.", titulo: "<h2>Paso 3: El Bus</h2>" },
+            { fondo: "imagenes/Laboratorio_MonitorApagado.jpg", pers: "imagenes/Mapache_ManosAbiertas.png", msg: "¡Alto ahí! Entramos al Controlador. Él es el traductor oficial que prepara los datos.", titulo: "<h2>Paso 4: Controlador</h2>" },
+            { fondo: "imagenes/Laboratorio_Monitor.jpg", pers: "imagenes/Mapache_Explica_ConDedo.png", msg: "¡Llegó! El monitor recibe los datos y los convierte en luz. Por eso es de SALIDA.", titulo: "<h2>Paso 5: Monitor</h2>" },
+            /* MOUSE 18-28 */
+            { fondo: "imagenes/Laboratorio_Monitor.jpg", pers: "imagenes/Mapache_ManosAbiertas.png", msg: "Ahora conectemos el mouse.", titulo: "" },
+            { fondo: "imagenes/Laboratorio_Maus.jpg", pers: "imagenes/Mapache_ManosAbiertas.png", msg: "El mouse es un dispositivo de entrada porque envía señales al sistema.", titulo: "" },
+            { fondo: "imagenes/Laboratorio_Maus.jpg", pers: "imagenes/Mapache_Explica_ConDedo.png", msg: "Cada clic genera un dato que viaja por el bus hacia la CPU.", titulo: "" },
+            { fondo: "imagenes/Laboratorio_Maus.jpg", pers: "imagenes/Mapache_Explica_ConDedo.png", msg: "Para entenderlo mejor, ¡presiona el mouse y observa el simulador!", titulo: "" },
+            { fondo: "imagenes/Laboratorio_Maus.jpg", pers: "imagenes/Mapache_ManosAbiertas.png", msg: "!Ahora si¡ Trabajaremos con este simulador para entenderlo mejor", titulo: "" },
+            { fondo: "imagenes/Laboratorio_Maus.jpg", pers: "imagenes/Mapache_ManosAbiertas.png", msg: "¡Clic! Mis sensores ópticos detectan el cambio y generan una señal eléctrica.", titulo: "<h1>🖱️ Simulador Mouse</h1><h2>Paso 1: Clic</h2>" },
+            { fondo: "imagenes/Laboratorio_Maus.jpg", pers: "imagenes/Mapache_Explica_ConDedo.png", msg: "¡El Controlador de E/S me recibe! Convierte mi señal en bits y lanza una interrupción.", titulo: "<h2>Paso 2: Interrupción</h2>" },
+            { fondo: "imagenes/Laboratorio_Maus.jpg", pers: "imagenes/Mapache_ManosAbiertas.png", msg: "¡Directo al cerebro! La CPU sabe que ese clic significa que quieres mover algo.", titulo: "<h2>Paso 3: CPU</h2>" },
+            { fondo: "imagenes/Laboratorio_Maus.jpg", pers: "imagenes/Mapache_Explica_ConDedo.png", msg: "La RAM guarda temporalmente las nuevas coordenadas de tu fichero.", titulo: "<h2>Paso 4: RAM</h2>" },
+            { fondo: "imagenes/Laboratorio_Maus.jpg", pers: "imagenes/Mapache_Explica_ConDedo.png", msg: "El Sistema de Archivos escribe en el Disco Duro. ¡Ya es oficial!", titulo: "<h2>Paso 5: Disco</h2>" },
+            { fondo: "imagenes/Laboratorio_Maus.jpg", pers: "imagenes/Mapache_ManosAbiertas.png", msg: "¡Lo logramos! Los píxeles se iluminan en el Monitor. ¡Mira cómo aterrizó!", titulo: "<h2>Paso 6: Monitor</h2>" },
+            /* TECLADO 29-39 */
+            { fondo: "imagenes/Laboratorio_Maus.jpg", pers: "imagenes/Mapache_Saluda.png", msg: "Por último, conectemos el teclado.", titulo: "" },
+            { fondo: "imagenes/Laboratorio_Teclado.jpg", pers: "imagenes/Mapache_ManosAbiertas.png", msg: "El teclado también es un dispositivo de entrada.", titulo: "" },
+            { fondo: "imagenes/Laboratorio_Teclado.jpg", pers: "imagenes/Mapache_Explica_ConDedo.png", msg: "Al presionar una tecla, el sistema interpreta esa instrucción.", titulo: "" },
+            { fondo: "imagenes/Laboratorio_Teclado.jpg", pers: "imagenes/Mapache_ManosAbiertas.png", msg: "Para entenderlo mejor, ¡presiona el teclado y observa el simulador!", titulo: "" },
+            { fondo: "imagenes/Laboratorio_Teclado.jpg", pers: "imagenes/Mapache_Explica_ConDedo.png", msg: "!Ahora si¡ Trabajaremos con este simulador para entenderlo mejor", titulo: "" },
+            { fondo: "imagenes/Laboratorio_Teclado.jpg", pers: "imagenes/Mapache_ManosAbiertas.png", msg: "¡Clic! Genero un código binario único. Una letra secreta para la computadora.", titulo: "<h1>⌨️ Simulador Teclado</h1><h2>Paso 1: Tecla</h2>" },
+            { fondo: "imagenes/Laboratorio_Teclado.jpg", pers: "imagenes/Mapache_Explica_ConDedo.png", msg: "El controlador traduce la señal y lanza una interrupción urgente.", titulo: "<h2>Paso 2: Controlador</h2>" },
+            { fondo: "imagenes/Laboratorio_Teclado.jpg", pers: "imagenes/Mapache_ManosAbiertas.png", msg: "La CPU decodifica el mensaje: '¡Instrucción recibida!'.", titulo: "<h2>Paso 3: CPU</h2>" },
+            { fondo: "imagenes/Laboratorio_Teclado.jpg", pers: "imagenes/Mapache_Explica_ConDedo.png", msg: "¡A la RAM! Guardo el dato en el Buffer para que no se pierda nada.", titulo: "<h2>Paso 4: RAM</h2>" },
+            { fondo: "imagenes/Laboratorio_Teclado.jpg", pers: "imagenes/Mapache_ManosAbiertas.png", msg: "El Procesador Gráfico prepara el dibujo de la letra.", titulo: "<h2>Paso 5: GPU</h2>" },
+            { fondo: "imagenes/Laboratorio_Teclado.jpg", pers: "imagenes/Mapache_ManosAbiertas.png", msg: "¡Listo! La señal se convierte en luz en el monitor.", titulo: "<h2>Paso 6: Monitor</h2>" },
+            { fondo: "imagenes/Laboratorio_Teclado.jpg", pers: "imagenes/Mapache_Saluda.png", msg: "Y con esto ahora si conoces por qué se logra el resultado. ¡Gracias!", titulo: "<h1>🎮 Fin</h1>" }
+        ];
+
+        let indice = 0;
+        const contenedor = document.getElementById("contenedor-personaje");
+        const contenedorSim = document.getElementById("contenedor-simulador");
+        const pnlTecnico = document.getElementById("pnl-tecnico");
+        const dato = document.getElementById('dato');
+
+        function resetSimulador() {
+            dato.style.display = "none";
+            pnlTecnico.innerText = "Sistema listo.";
+            document.querySelectorAll('.bloque, .linea').forEach(el => {
+                el.className = el.classList.contains('bloque') ? 'bloque' : 'linea';
+                el.style.display = "none";
+                el.innerText = "";
+            });
+        }
+
+        function actualizarSimulador(num) {
+            resetSimulador();
+
+            // MONITOR (12-17)
+            if (num >= 12 && num <= 17) {
+                contenedorSim.style.display = "flex";
+                const b1 = document.getElementById('b1'); b1.style = "display:flex; left:110px; top:50px;"; b1.innerText = "RAM";
+                const b2 = document.getElementById('b2'); b2.style = "display:flex; left:340px; top:50px;"; b2.innerText = "CPU";
+                const b4 = document.getElementById('b4'); b4.style = "display:flex; left:110px; top:210px;"; b4.innerText = "MONITOR";
+                const b5 = document.getElementById('b5'); b5.style = "display:flex; left:340px; top:210px;"; b5.innerText = "CONTROLADOR E/S";
+
+                document.getElementById('l1').style = "display:block; left:280px; top:85px; width:60px; height:4px;";
+                document.getElementById('l2').style = "display:block; left:425px; top:125px; width:4px; height:85px;";
+                document.getElementById('l3').style = "display:block; left:280px; top:245px; width:60px; height:4px;";
+
+                if (num == 12) pnlTecnico.innerText = "Simulador de Salida: Monitor";
+                if (num >= 13) { b1.classList.add('iluminar-ram'); dato.style = "display:block; left:185px; top:77px;"; pnlTecnico.innerText = "RAM: Leyendo datos de imagen..."; }
+                if (num >= 14) { b2.classList.add('iluminar-cpu'); document.getElementById('l1').classList.add('activa'); dato.style.left = "415px"; pnlTecnico.innerText = "CPU: Procesando orden de salida..."; }
+                if (num >= 15) { document.getElementById('l2').classList.add('activa'); dato.style.top = "155px"; dato.style.left = "417px"; pnlTecnico.innerText = "BUS: Datos viajando al controlador..."; }
+                if (num >= 16) { b5.classList.add('iluminar-ctrl'); dato.style.top = "237px"; pnlTecnico.innerText = "CONTROLADOR: Convirtiendo señal..."; }
+                if (num >= 17) { b4.classList.add('iluminar-mon'); document.getElementById('l3').classList.add('activa'); dato.style.left = "185px"; pnlTecnico.innerText = "MONITOR: Visualizando información."; }
+            }
+            // MOUSE (22-28) & TECLADO (33-39)
+            else if ((num >= 22 && num <= 28) || (num >= 33 && num <= 39)) {
+                contenedorSim.style.display = "flex";
+                const isMouse = (num <= 28);
+
+                document.getElementById('b1').style = "display:flex; left:35px; top:50px;"; document.getElementById('b1').innerText = isMouse ? "MOUSE" : "TECLADO";
+                document.getElementById('b2').style = "display:flex; left:225px; top:50px;"; document.getElementById('b2').innerText = isMouse ? "RAM" : "RAM (BUFFER)";
+                document.getElementById('b3').style = "display:flex; left:415px; top:50px;"; document.getElementById('b3').innerText = isMouse ? "DISCO" : "GPU / SW";
+                document.getElementById('b4').style = "display:flex; left:35px; top:210px;"; document.getElementById('b4').innerText = "CTRL E/S";
+                document.getElementById('b5').style = "display:flex; left:225px; top:210px;"; document.getElementById('b5').innerText = "CPU (KERNEL)";
+                document.getElementById('b6').style = "display:flex; left:415px; top:210px;"; document.getElementById('b6').innerText = "MONITOR";
+
+                document.getElementById('l1').style = "display:block; left:118px; top:125px; width:4px; height:85px;";
+                document.getElementById('l2').style = "display:block; left:205px; top:245px; width:20px; height:4px;";
+                document.getElementById('l3').style = "display:block; left:308px; top:125px; width:4px; height:85px;";
+                document.getElementById('l4').style = "display:block; left:395px; top:85px; width:20px; height:4px;";
+                document.getElementById('l5').style = "display:block; left:498px; top:125px; width:4px; height:85px;";
+
+                let step = isMouse ? num - 23 : num - 34;
+                if (step == -1) pnlTecnico.innerText = isMouse ? "Simulador Mouse (Entrada)" : "Simulador Teclado (Entrada)";
+                if (step >= 0) { document.getElementById('b1').classList.add('iluminar-hw'); dato.style = "display:block; left:110px; top:77px;"; pnlTecnico.innerText = isMouse ? "Hardware: Clic detectado." : "Hardware: Tecla presionada."; }
+                if (step >= 1) { document.getElementById('b4').classList.add('iluminar-ctrl'); document.getElementById('l1').classList.add('activa'); dato.style.top = "237px"; pnlTecnico.innerText = "Controlador: Enviando interrupción..."; }
+                if (step >= 2) { document.getElementById('b5').classList.add('iluminar-cpu'); document.getElementById('l2').classList.add('activa'); dato.style.left = "300px"; pnlTecnico.innerText = "CPU: Gestionando orden del Kernel."; }
+                if (step >= 3) { document.getElementById('b2').classList.add('iluminar-ram'); document.getElementById('l3').classList.add('activa'); dato.style.top = "77px"; pnlTecnico.innerText = "RAM: Actualizando memoria temporal."; }
+                if (step >= 4) { document.getElementById('b3').classList.add(isMouse ? 'iluminar-disco' : 'iluminar-gpu'); document.getElementById('l4').classList.add('activa'); dato.style.left = "490px"; pnlTecnico.innerText = isMouse ? "Almacenamiento: Cambios en disco." : "GPU: Dibujando carácter."; }
+                if (step >= 5) { document.getElementById('b6').classList.add('iluminar-mon'); document.getElementById('l5').classList.add('activa'); dato.style.top = "237px"; pnlTecnico.innerText = "Monitor: Resultado final en pantalla."; }
+            } else {
+                contenedorSim.style.display = "none";
+            }
+        }
+
+        function cambiarEscena(nuevoIndice) {
+            indice = nuevoIndice;
+            const escena = escenas[indice];
+            const fondo = document.getElementById("fondo");
+            const personaje = document.getElementById("personaje");
+            const mensaje = document.getElementById("mensaje");
+
+            fondo.style.opacity = 0;
+            setTimeout(() => {
+                fondo.src = escena.fondo;
+                personaje.src = escena.pers;
+                mensaje.innerHTML = (escena.titulo || "") + escena.msg;
+
+                // --- ALTURA FIJA PARA EVITAR SALTOS ---
+                personaje.style.height = "480px";
+
+                contenedor.style.left = ""; contenedor.style.right = "";
+                if (indice === 0) { contenedor.style.right = "50px"; }
+                else if (indice === 1) { contenedor.style.left = "400px"; }
+                else { contenedor.style.left = "200px"; }
+
+                actualizarSimulador(indice);
+                document.getElementById("btn-anterior").classList.toggle("oculto", indice === 0);
+                document.getElementById("btn-siguiente").innerText = (indice === escenas.length - 1) ? "Fin" : "Siguiente";
+                fondo.style.opacity = 1;
+            }, 150);
+        }
+
+        function inicializarEscena() { cambiarEscena(0); }
+        document.getElementById("btn-siguiente").addEventListener("click", () => { if (indice < escenas.length - 1) cambiarEscena(indice + 1); });
+        document.getElementById("btn-anterior").addEventListener("click", () => { if (indice > 0) cambiarEscena(indice - 1); });
+    </script>
+</body>
+
+</html>
