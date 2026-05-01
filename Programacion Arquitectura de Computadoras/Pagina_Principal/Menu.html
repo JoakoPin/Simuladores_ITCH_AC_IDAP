@@ -3,19 +3,18 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Menu</title>
+    <title>Menu con Popups</title>
     <style>
-        /* Eliminamos cualquier margen que pueda ocultar la imagen */
-        body,
-        html {
+        /* Estilos originales */
+        body, html {
             margin: 0;
             padding: 0;
             width: 100%;
             height: 100%;
             overflow: hidden;
+            font-family: sans-serif;
         }
 
-        /* Contenedor que llena toda la pantalla */
         .fondo {
             width: 100vw;
             height: 100vh;
@@ -27,7 +26,6 @@
             align-items: center;
         }
 
-        /* El recuadro transparente */
         .ventana {
             background-color: rgba(255, 255, 255, 0.4);
             padding: 50px;
@@ -36,9 +34,9 @@
             flex-direction: column;
             gap: 20px;
             width: 300px;
+            backdrop-filter: blur(5px); /* Un toque extra de elegancia */
         }
 
-        /* Los botones */
         .boton {
             background-color: #004a99;
             color: white;
@@ -55,6 +53,51 @@
         .boton:hover {
             background-color: #007bff;
         }
+
+        /* --- Estilos para el Popup (Modal) --- */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none; /* Oculto por defecto */
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .popup {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            min-width: 250px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .popup h2 {
+            margin-top: 0;
+            color: #333;
+        }
+
+        .contenedor-botones-popup {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn-cerrar {
+            margin-top: 15px;
+            background: #cc0000;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
     </style>
 </head>
 
@@ -62,12 +105,75 @@
 
     <div class="fondo">
         <div class="ventana">
-            <button class="boton">Prácticas de la unidad 4</button>
-            <button class="boton">Prácticas de la unidad 3</button>
-            <button class="boton">Prácticas de la unidad 2</button>
+            <!-- Agregamos onclick para identificar cada unidad -->
+            <button class="boton" onclick="abrirModal('unidad4')">Prácticas de la unidad 4</button>
+            <button class="boton" onclick="abrirModal('unidad3')">Prácticas de la unidad 3</button>
+            <button class="boton" onclick="abrirModal('unidad2')">Prácticas de la unidad 2</button>
         </div>
     </div>
 
-</body>
+    <!-- Estructura del Popup -->
+    <div id="miOverlay" class="overlay">
+        <div class="popup">
+            <h2 id="tituloPopup">Título</h2>
+            <div id="contenidoPopup" class="contenedor-botones-popup">
+                <!-- Aquí se inyectará el contenido dinámicamente -->
+            </div>
+            <button class="btn-cerrar" onclick="cerrarModal()">Cerrar</button>
+        </div>
+    </div>
 
+    <script>
+        const overlay = document.getElementById('miOverlay');
+        const titulo = document.getElementById('tituloPopup');
+        const contenido = document.getElementById('contenidoPopup');
+
+        function abrirModal(unidad) {
+            // Limpiamos el contenido previo
+            contenido.innerHTML = "";
+            
+            if (unidad === 'unidad2') {
+                titulo.innerText = "Unidad 2";
+                
+                // Crear botón Práctica 1
+                const btn1 = document.createElement('button');
+                btn1.className = 'boton';
+                btn1.innerText = "Práctica 1: Buses";
+                btn1.onclick = () => alert("Abriendo Práctica 1..."); // Aquí pones tu link
+                
+                // Crear botón Práctica 2
+                const btn2 = document.createElement('button');
+                btn2.className = 'boton';
+                btn2.innerText = "Práctica 2: Entradas/Salidas";
+                btn2.onclick = () => alert("Abriendo Práctica 2..."); // Aquí pones tu link
+                
+                contenido.appendChild(btn1);
+                contenido.appendChild(btn2);
+            } 
+            else {
+                // Para unidad 3 y 4
+                titulo.innerText = (unidad === 'unidad3') ? "Unidad 3" : "Unidad 4";
+                const msg = document.createElement('p');
+                msg.innerText = "Próximamente...";
+                msg.style.fontSize = "20px";
+                contenido.appendChild(msg);
+            }
+
+            // Mostrar el modal
+            overlay.style.display = 'flex';
+        }
+
+        function cerrarModal() {
+            overlay.style.display = 'none';
+        }
+
+        // Cerrar si se hace clic fuera del recuadro blanco
+        window.onclick = function(event) {
+            if (event.target == overlay) {
+                cerrarModal();
+            }
+        }
+    </script>
+
+</body>
 </html>
