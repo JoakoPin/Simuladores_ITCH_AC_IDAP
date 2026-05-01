@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Simulador E/S Técnico - Flujo Preciso</title>
+    <style>
+        body { 
+            background: #0f172a; color: white; font-family: 'Courier New', monospace; 
+            display: flex; flex-direction: column; align-items: center; 
+            justify-content: center; height: 100vh; margin: 0; 
+        }
+
+        #panel-tecnico {
+            width: 80%; height: 70px; background: #1e293b; 
+            border: 2px solid #334155; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 20px; padding: 10px; text-align: center;
+            font-size: 0.9em; color: #94a3b8; font-style: italic;
+        }
+        
+        #escenario-cuadrado { 
+            display: grid; grid-template-columns: 150px 150px; 
+            grid-template-rows: 100px 100px; gap: 50px; position: relative;
+        }
+
+        .bloque { 
+            width: 150px; height: 80px; background: #334155; 
+            border: 2px solid #64748b; display: flex; align-items: center; 
+            justify-content: center; font-weight: bold; border-radius: 8px; z-index: 2;
+            transition: all 0.4s ease;
+        }
+        
+        .iluminar-ram { background: #92400e !important; box-shadow: 0 0 25px #fbbf24 !important; border-color: #fbbf24 !important; }
+        .iluminar-cpu { background: #075985 !important; box-shadow: 0 0 25px #38bdf8 !important; border-color: #38bdf8 !important; }
+        .iluminar-ctrl { background: #5b21b6 !important; box-shadow: 0 0 25px #a78bfa !important; border-color: #a78bfa !important; }
+        .iluminar-mon { background: #064e3b !important; box-shadow: 0 0 25px #22c55e !important; border-color: #22c55e !important; }
+        
+        .linea { position: absolute; background: #334155; z-index: 1; transition: background 0.4s; }
+        .linea-activa { background: #38bdf8 !important; box-shadow: 0 0 10px #38bdf8 !important; }
+
+        #l-ram-cpu { top: 40px; left: 150px; width: 50px; height: 5px; }
+        #l-cpu-ctrl { top: 80px; left: 225px; width: 5px; height: 70px; } 
+        #l-ctrl-mon { top: 180px; left: 150px; width: 100px; height: 5px; }
+
+        #dato { 
+            width: 30px; height: 30px; background: #fbbf24; position: absolute; 
+            top: 25px; left: 60px; z-index: 3; border-radius: 5px; 
+            transition: all 0.6s ease-in-out; display: none; box-shadow: 0 0 10px #fbbf24;
+        }
+
+        button { padding: 15px 30px; background: #f97316; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; color: white; margin-top: 30px; }
+        #texto-narrativo { font-size: 1.2em; margin-top: 20px; color: #fbbf24; }
+    </style>
+</head>
+<body>
+
+    <div id="panel-tecnico">Información técnica del proceso aparecerá aquí.</div>
+
+    <div id="escenario-cuadrado">
+        <div class="bloque" id="ram">RAM</div>
+        <div class="bloque" id="cpu">CPU</div>
+        <div class="bloque" id="monitor">MONITOR</div>
+        <div class="bloque" id="ctrl">CTRL E/S</div>
+        
+        <div class="linea" id="l-ram-cpu"></div>
+        <div class="linea" id="l-cpu-ctrl"></div>
+        <div class="linea" id="l-ctrl-mon"></div>
+        
+        <div id="dato"></div>
+    </div>
+    
+    <p id="texto-narrativo">Presiona para iniciar el flujo de datos</p>
+    <button id="btn-accion" onclick="ejecutarPaso()">INICIAR PASO 1</button>
+
+    <script>
+        let estado = 0;
+        const dato = document.getElementById('dato');
+        const txt = document.getElementById('texto-narrativo');
+        const pnl = document.getElementById('panel-tecnico');
+        const btn = document.getElementById('btn-accion');
+
+        function ejecutarPaso() {
+            if (estado === 0) {
+                dato.style.display = "block";
+                document.getElementById('ram').classList.add('iluminar-ram');
+                pnl.innerText = "La información reside en la RAM.";
+                txt.innerText = "1. El dato está listo en la RAM.";
+                btn.innerText = "PASO 2: ORDEN DE LA CPU";
+                estado = 1;
+            } else if (estado === 1) {
+                dato.style.left = "210px"; // Se mueve hacia la CPU
+                document.getElementById('cpu').classList.add('iluminar-cpu');
+                pnl.innerText = "La CPU procesa la instrucción.";
+                txt.innerText = "2. La CPU procesa la orden.";
+                btn.innerText = "PASO 3: VIAJE POR EL BUS";
+                estado = 2;
+            } else if (estado === 2) {
+                dato.style.left = "212px"; // Alineado con la línea vertical del bus
+                dato.style.top = "115px";  // En medio del bus
+                document.getElementById('l-cpu-ctrl').classList.add('linea-activa');
+                pnl.innerText = "El dato viaja por el Bus de Datos.";
+                txt.innerText = "3. El dato viaja por el Bus.";
+                btn.innerText = "PASO 4: CONTROLADOR E/S";
+                estado = 3;
+            } else if (estado === 3) {
+                dato.style.top = "165px";  // Baja hasta el controlador
+                document.getElementById('ctrl').classList.add('iluminar-ctrl');
+                pnl.innerText = "El Controlador E/S recibe el dato.";
+                txt.innerText = "4. El controlador prepara la salida.";
+                btn.innerText = "PASO 5: MONITOR";
+                estado = 4;
+            } else if (estado === 4) {
+                dato.style.left = "60px";  // Se mueve al monitor
+                document.getElementById('monitor').classList.add('iluminar-mon');
+                pnl.innerText = "El monitor muestra la información.";
+                txt.innerText = "5. ¡Salida exitosa! El monitor muestra el dato.";
+                btn.disabled = true;
+                btn.innerText = "Simulación Completa";
+            }
+        }
+    </script>
+</body>
+</html>
